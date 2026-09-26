@@ -25,7 +25,7 @@ export function Header({ onOpenMenu }: HeaderProps) {
         </button>
         <div className="min-w-0">
           <h1 className="truncate text-base font-semibold text-[var(--foreground)] sm:text-lg">{title}</h1>
-          <p className="hidden text-xs text-[var(--muted)] sm:block">Clube Amigos do Ginásio</p>
+          <p className="hidden text-xs text-[var(--muted)] sm:block">Associação dos Amigos do Ginásio</p>
         </div>
       </div>
 

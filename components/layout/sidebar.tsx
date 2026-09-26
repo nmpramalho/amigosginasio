@@ -32,9 +32,11 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         }`}
       >
         <div className="flex h-[var(--header-height)] items-center gap-3 border-b border-[var(--border)] px-5">
-          <Image src="/club-logo.svg" alt="" width={36} height={36} className="h-9 w-9" />
+          <Image src="/club-logo.svg" alt="" width={36} height={36} className="h-9 w-9 object-contain" />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-[var(--foreground)]">Amigos do Ginásio</p>
+            <p className="truncate text-sm font-semibold text-[var(--foreground)]" title="Associação dos Amigos do Ginásio">
+              Amigos do Ginásio
+            </p>
             <p className="truncate text-xs text-[var(--muted)]">Bilhar 3 Tabelas</p>
           </div>
           <button

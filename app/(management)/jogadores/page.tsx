@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Jogadores" };
 export default function Page() {
   return (
     <>
-      <PageHeading title="Jogadores" description="Consulta e gestão dos jogadores do Clube Amigos do Ginásio." />
+      <PageHeading title="Jogadores" description="Consulta e gestão dos jogadores da Associação dos Amigos do Ginásio." />
       <EmptyState title="Módulo de jogadores" description="A gestão de jogadores estará disponível numa fase futura." />
     </>
   );

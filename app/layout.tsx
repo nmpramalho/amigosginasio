@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Clube Amigos do Ginásio",
-    template: "%s | Clube Amigos do Ginásio",
+    default: "Associação dos Amigos do Ginásio",
+    template: "%s | Associação dos Amigos do Ginásio",
   },
-  description: "Sistema de gestão de Bilhar 3 Tabelas do Clube Amigos do Ginásio.",
+  description: "Sistema de gestão de Bilhar 3 Tabelas da Associação dos Amigos do Ginásio.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
