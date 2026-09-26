@@ -1,26 +1,51 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --club-green-50: #f1f8f4;
+  --club-green-100: #dcefe3;
+  --club-green-500: #25834f;
+  --club-green-600: #1d6b40;
+  --club-green-700: #175634;
+  --club-green-800: #12442a;
+  --club-green-900: #0d3420;
+  --surface: #ffffff;
+  --background: #f5f7f6;
+  --foreground: #17211b;
+  --muted: #657169;
+  --border: #dfe5e1;
+  --sidebar-width: 264px;
+  --header-height: 64px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--background);
 }
 
 body {
+  min-height: 100vh;
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--club-green-500);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--club-green-100);
+  color: var(--club-green-900);
 }

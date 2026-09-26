@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title description">
+  <title id="title">Clube Amigos do Ginásio</title>
+  <desc id="description">Marca provisória do clube para o skeleton visual.</desc>
+  <path fill="#175634" d="M80 5 146 29v48c0 39-26 65-66 78C40 142 14 116 14 77V29L80 5Z"/>
+  <path fill="#fff" d="M80 18 134 38v39c0 31-20 52-54 64-34-12-54-33-54-64V38l54-20Z"/>
+  <circle cx="80" cy="69" r="35" fill="#25834f"/>
+  <circle cx="68" cy="61" r="9" fill="#fff"/>
+  <circle cx="93" cy="61" r="9" fill="#fff"/>
+  <circle cx="80" cy="83" r="9" fill="#fff"/>
+  <path fill="#175634" d="M46 111h68v10H46z"/>
+</svg>
