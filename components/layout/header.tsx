@@ -1,14 +1,16 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Menu, UserRound } from "lucide-react";
+import { LogOut, Menu, UserRound } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { pageTitles } from "./navigation";
 
 type HeaderProps = {
   onOpenMenu: () => void;
+  userName: string;
 };
 
-export function Header({ onOpenMenu }: HeaderProps) {
+export function Header({ onOpenMenu, userName }: HeaderProps) {
   const pathname = usePathname();
   const title = pageTitles[pathname] ?? "Sistema de Gestão";
 
@@ -31,12 +33,17 @@ export function Header({ onOpenMenu }: HeaderProps) {
 
       <div className="flex items-center gap-3">
         <div className="hidden text-right sm:block">
-          <p className="text-sm font-medium text-slate-700">Convidado</p>
-          <p className="text-xs text-slate-400">Sem autenticação</p>
+          <p className="text-sm font-medium text-slate-700">{userName}</p>
+          <p className="text-xs text-slate-400">Sessão iniciada</p>
         </div>
         <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-slate-50 text-slate-500">
           <UserRound size={18} strokeWidth={1.8} aria-hidden="true" />
         </div>
+        <button type="button" onClick={() => signOut({ callbackUrl: "/" })}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100"
+          aria-label="Terminar sessão" title="Terminar sessão">
+          <LogOut size={18} strokeWidth={1.8} aria-hidden="true" />
+        </button>
       </div>
     </header>
   );

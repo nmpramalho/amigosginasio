@@ -9,9 +9,10 @@ import { navigationSections } from "./navigation";
 type SidebarProps = {
   mobileOpen: boolean;
   onClose: () => void;
+  isAdmin: boolean;
 };
 
-export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
+export function Sidebar({ mobileOpen, onClose, isAdmin }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -51,7 +52,7 @@ export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
         <nav className="flex-1 overflow-y-auto px-3 py-5">
           <div className="space-y-6">
-            {navigationSections.map((section) => (
+            {navigationSections.filter((section) => isAdmin || section.label !== "Sistema").map((section) => (
               <section key={section.label} aria-labelledby={`nav-${section.label}`}>
                 <h2
                   id={`nav-${section.label}`}
