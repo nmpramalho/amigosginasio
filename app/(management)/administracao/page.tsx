@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { CalendarDays, ChevronRight } from "lucide-react";
 import { requireAdmin } from "@/lib/access";
 import { getDatabase } from "@/lib/db";
 import { PageHeading } from "@/components/ui/page-heading";
@@ -19,10 +21,18 @@ export default async function AdministrationPage({ searchParams }: { searchParam
   const { status } = await searchParams;
   return (
     <>
-      <PageHeading title="Administração" description="Gestão de acessos à plataforma." />
+      <PageHeading title="Administração" description="Configuração geral e gestão de acessos à plataforma." />
       {status === "saved" && <p role="status" className="mb-5 rounded-lg bg-[var(--club-green-50)] p-3 text-sm text-[var(--club-green-700)]">Alterações guardadas.</p>}
       {status === "invalid" && <p role="alert" className="mb-5 rounded-lg bg-red-50 p-3 text-sm text-red-700">Verifica os dados introduzidos.</p>}
       {status === "self" && <p role="alert" className="mb-5 rounded-lg bg-red-50 p-3 text-sm text-red-700">Não podes retirar o teu próprio acesso de administrador.</p>}
+      <section className="mb-6 rounded-xl border border-[var(--border)] bg-white p-5 sm:p-6">
+        <h2 className="text-lg font-semibold">Gestão desportiva</h2>
+        <Link href="/administracao/epocas" className="mt-4 flex items-center gap-3 rounded-lg border border-[var(--border)] p-4 hover:bg-slate-50">
+          <CalendarDays size={21} strokeWidth={1.8} className="text-[var(--club-green-700)]" aria-hidden="true" />
+          <span className="flex-1"><span className="block text-sm font-semibold">Épocas</span><span className="block text-xs text-[var(--muted)]">Criar épocas e definir a época atual</span></span>
+          <ChevronRight size={18} strokeWidth={1.8} aria-hidden="true" />
+        </Link>
+      </section>
       <section className="rounded-xl border border-[var(--border)] bg-white p-5 sm:p-6">
         <h2 className="text-lg font-semibold">Autorizar utilizador</h2>
         <form action={createUser} className="mt-5 grid gap-4 md:grid-cols-[1fr_1fr_160px_auto] md:items-end">
