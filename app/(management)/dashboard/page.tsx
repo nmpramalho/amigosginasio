@@ -5,6 +5,7 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { PageHeading } from "@/components/ui/page-heading";
 import { requireUser } from "@/lib/access";
 import { getDatabase } from "@/lib/db";
+import { refreshTv } from "@/lib/club-tv";
 
 export const metadata: Metadata = { title: "Início" };
 
@@ -63,6 +64,7 @@ function MatchList({ title, matches, empty, recent = false }: {
 
 export default async function DashboardPage() {
   await requireUser();
+  const { state: tv } = await refreshTv();
   const sql = getDatabase();
   const seasonRows = (await sql`SELECT id, name FROM public.seasons
     WHERE is_active = true LIMIT 1`) as Season[];
@@ -124,6 +126,12 @@ export default async function DashboardPage() {
     { label: "Resultados", value: String(recent.length), description: "Encontros realizados com quatro resultados", icon: CheckCircle2 },
   ];
   return <>
+    {tv.videos.length > 0 && <Link href="/tv" className="mb-5 block rounded-xl border border-red-200 bg-red-50 p-5 hover:bg-red-100">
+      <span className="font-bold text-red-700">● EM DIRETO · TV do Clube</span>
+      <span className="mt-1 block text-sm text-slate-800">{tv.videos.length === 1 ? tv.videos[0].title : `${tv.videos.length} transmissões em direto`}</span>
+      <span className="mt-2 block text-sm font-semibold text-[var(--club-green-700)]">Ver transmissão →</span>
+    </Link>}
+
     <PageHeading title="Início" description={season
       ? `Visão geral da atividade desportiva · Época ${season.name}`
       : "Visão geral da atividade desportiva · Sem época ativa"} />
