@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { LogOut, Menu, UserRound } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { pageTitles } from "./navigation";
@@ -32,6 +33,7 @@ export function Header({ onOpenMenu, userName }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
+        <Link href="/privacidade" className="hidden text-xs font-medium text-[var(--club-green-700)] hover:underline md:inline" title="Política de Privacidade">Privacidade</Link>
         <div className="hidden text-right sm:block">
           <p className="text-sm font-medium text-slate-700">{userName}</p>
           <p className="text-xs text-slate-400">Sessão iniciada</p>
