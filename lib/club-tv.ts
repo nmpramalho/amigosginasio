@@ -1,6 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { getDatabase } from "@/lib/db";
+import { getConnection, getAccessToken, youtubeOwned } from "@/lib/youtube-channel";
 
 const CHANNEL_HANDLE = "BilharGCS";
 export const CLUB_CHANNEL_URL = "https://www.youtube.com/@BilharGCS/streams";
@@ -134,6 +135,49 @@ async function fetchLive(knownChannel: string | null): Promise<{ channel: string
   return { channel, videos, upcoming };
 }
 
+async function fetchOwned(): Promise<{ channel: string; videos: LiveVideo[]; upcoming: ScheduledVideo[] }> {
+  const connection = await getConnection();
+  if (!connection) throw new Error("Canal não ligado.");
+  const token = await getAccessToken(connection);
+  const videos: LiveVideo[] = [];
+  const upcoming: ScheduledVideo[] = [];
+  let next: string | undefined;
+  for (let page = 0; page < 10; page++) {
+    const response = await youtubeOwned("liveBroadcasts", {
+      part: "snippet,status,contentDetails", mine: "true", broadcastType: "all", maxResults: "50",
+      ...(next ? { pageToken: next } : {}),
+    }, token);
+    if (!Array.isArray(response.items)) throw new Error("Resposta do canal inválida.");
+    for (const raw of response.items) {
+      if (!raw || typeof raw !== "object") continue;
+      const item = raw as { id?: unknown; snippet?: { title?: unknown; channelId?: unknown;
+        scheduledStartTime?: unknown; actualStartTime?: unknown };
+        status?: { privacyStatus?: unknown; lifeCycleStatus?: unknown };
+        contentDetails?: { enableEmbed?: unknown } };
+      if (typeof item.id !== "string" || !idPattern.test(item.id) ||
+          item.snippet?.channelId !== connection.channel_id ||
+          typeof item.snippet?.title !== "string" ||
+          !["public", "unlisted"].includes(String(item.status?.privacyStatus)) ||
+          item.contentDetails?.enableEmbed !== true) continue;
+      const title = item.snippet.title.slice(0, 200);
+      const lifecycle = item.status?.lifeCycleStatus;
+      if (lifecycle === "live") {
+        videos.push({ id: item.id, title, publishedAt:
+          typeof item.snippet.actualStartTime === "string" ? item.snippet.actualStartTime : new Date().toISOString() });
+      } else if (["created", "ready", "testStarting", "testing", "liveStarting"].includes(String(lifecycle)) &&
+          typeof item.snippet.scheduledStartTime === "string" &&
+          Number.isFinite(Date.parse(item.snippet.scheduledStartTime))) {
+        upcoming.push({ id: item.id, title, scheduledAt: item.snippet.scheduledStartTime });
+      }
+    }
+    next = typeof response.nextPageToken === "string" ? response.nextPageToken : undefined;
+    if (!next) break;
+    if (page === 9) throw new Error("Lista de transmissões excede o limite de paginação.");
+  }
+  upcoming.sort((a, b) => Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt));
+  return { channel: connection.channel_id, videos, upcoming };
+}
+
 export async function refreshTv(force = false): Promise<{ status: "updated" | "cached" | "busy" | "error"; state: TvState }> {
   const sql = getDatabase();
   const claim = randomUUID();
@@ -151,7 +195,7 @@ export async function refreshTv(force = false): Promise<{ status: "updated" | "c
       ? "busy" : "cached", state: state(row) };
   }
   try {
-    const result = await fetchLive(claimed[0].channel_id as string | null);
+    const result = await getConnection() ? await fetchOwned() : await fetchLive(claimed[0].channel_id as string | null);
     await sql`UPDATE public.club_tv_live_cache
       SET channel_id = ${result.channel}, videos = ${JSON.stringify(result.videos)}::jsonb,
         upcoming = ${JSON.stringify(result.upcoming)}::jsonb,

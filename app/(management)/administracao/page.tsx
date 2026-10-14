@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarDays, ChevronRight } from "lucide-react";
+import { CalendarDays, ChevronRight, Tv } from "lucide-react";
 import { requireAdmin } from "@/lib/access";
 import { getDatabase } from "@/lib/db";
 import { PageHeading } from "@/components/ui/page-heading";
 import { createUser, updateUser } from "./actions";
+import { PortalSyncPanel } from "./portal-sync-panel";
 
 export const metadata: Metadata = { title: "Administração" };
 
@@ -14,14 +15,17 @@ type AttemptRow = { id: number; email: string; created_at: Date };
 export default async function AdministrationPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
   const admin = await requireAdmin();
   const sql = getDatabase();
-  const [users, attempts] = await Promise.all([
+  const [users, attempts, syncRuns, syncChanges] = await Promise.all([
     sql`SELECT id, email, name, role, active FROM users ORDER BY name ASC`,
     sql`SELECT id, email, created_at FROM access_attempts ORDER BY created_at DESC LIMIT 20`,
+    sql`SELECT id,started_at,completed_at,trigger_type,status,discovered_count,inserted_count,updated_count,unchanged_count,error_count,error_message FROM public.portal_sync_runs ORDER BY started_at DESC LIMIT 10`,
+    sql`SELECT c.id,c.sync_run_id,c.field_name,c.previous_value,c.new_value,c.detected_at,t.name AS team_name,m.opponent_name FROM public.team_match_portal_changes c JOIN public.team_matches m ON m.id=c.match_id JOIN public.teams t ON t.id=m.team_id ORDER BY c.detected_at DESC LIMIT 30`,
   ]);
   const { status } = await searchParams;
   return (
     <>
       <PageHeading title="Administração" description="Configuração geral e gestão de acessos à plataforma." />
+      <PortalSyncPanel runs={syncRuns as never[]} changes={syncChanges as never[]} />
       {status === "saved" && <p role="status" className="mb-5 rounded-lg bg-[var(--club-green-50)] p-3 text-sm text-[var(--club-green-700)]">Alterações guardadas.</p>}
       {status === "invalid" && <p role="alert" className="mb-5 rounded-lg bg-red-50 p-3 text-sm text-red-700">Verifica os dados introduzidos.</p>}
       {status === "self" && <p role="alert" className="mb-5 rounded-lg bg-red-50 p-3 text-sm text-red-700">Não podes retirar o teu próprio acesso de administrador.</p>}
@@ -30,6 +34,11 @@ export default async function AdministrationPage({ searchParams }: { searchParam
         <Link href="/administracao/epocas" className="mt-4 flex items-center gap-3 rounded-lg border border-[var(--border)] p-4 hover:bg-slate-50">
           <CalendarDays size={21} strokeWidth={1.8} className="text-[var(--club-green-700)]" aria-hidden="true" />
           <span className="flex-1"><span className="block text-sm font-semibold">Épocas</span><span className="block text-xs text-[var(--muted)]">Criar épocas e definir a época atual</span></span>
+          <ChevronRight size={18} strokeWidth={1.8} aria-hidden="true" />
+        </Link>
+        <Link href="/administracao/youtube" className="mt-3 flex items-center gap-3 rounded-lg border border-[var(--border)] p-4 hover:bg-slate-50">
+          <Tv size={21} strokeWidth={1.8} className="text-[var(--club-green-700)]" aria-hidden="true" />
+          <span className="flex-1"><span className="block text-sm font-semibold">Canal YouTube</span><span className="block text-xs text-[var(--muted)]">Ligar o canal para detetar diretos não listados</span></span>
           <ChevronRight size={18} strokeWidth={1.8} aria-hidden="true" />
         </Link>
       </section>

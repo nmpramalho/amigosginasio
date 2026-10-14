@@ -31,13 +31,13 @@ export default async function TvPage({ searchParams }: {
     {status === "busy" && <p role="status" className="mb-4 rounded-lg border bg-white p-3 text-sm">Já está a decorrer uma verificação.</p>}
     {status === "updated" && <p role="status" className="mb-4 rounded-lg border bg-white p-3 text-sm">Verificação concluída.</p>}
     {tv.error && user.role === "admin" && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{tv.error}</p>}
-    {tv.videos.length ? <div className="space-y-6">{tv.videos.map(video =>
+    {tv.videos.length ? <div className="space-y-6">{tv.videos.map((video, index) =>
       <section key={video.id} className="overflow-hidden rounded-xl border border-[var(--border)] bg-white">
         <div className="flex items-center gap-3 p-4"><span className="rounded-full bg-red-600 px-3 py-1 text-xs font-bold text-white">EM DIRETO</span>
           <h2 className="text-lg font-semibold">{video.title}</h2></div>
         <div className="aspect-video bg-black"><iframe
-          src={`https://www.youtube-nocookie.com/embed/${video.id}`}
-          title={video.title} loading="lazy" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
+          src={`https://www.youtube-nocookie.com/embed/${video.id}?${index === 0 ? "autoplay=1&mute=1&playsinline=1&rel=0" : "autoplay=0&playsinline=1&rel=0"}`}
+          title={video.title} loading={index === 0 ? "eager" : "lazy"} allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen referrerPolicy="strict-origin-when-cross-origin"
           className="h-full w-full" /></div>
       </section>)}</div> : <section className="rounded-xl border border-[var(--border)] bg-white p-8 text-center">

@@ -33,3 +33,11 @@ export async function updateUser(formData: FormData) {
   revalidatePath("/administracao");
   redirect("/administracao?status=saved");
 }
+
+export async function syncPortalMatchesNow(){
+  const admin=await requireAdmin();
+  const {syncPortalMatches}=await import("@/lib/portal-bilhar/sync-team-matches");
+  const result=await syncPortalMatches({triggerType:"manual",requestedBy:admin.id});
+  revalidatePath("/administracao");revalidatePath("/jogos");revalidatePath("/dashboard");
+  redirect(`/administracao?status=${result.status==='locked'?'sync-locked':result.status==='failed'?'sync-failed':'sync-complete'}`);
+}

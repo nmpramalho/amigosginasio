@@ -39,11 +39,17 @@ export function ScheduledBroadcasts({ videos, today }: { videos: ScheduledVideo[
       </div>
     </div>
     {visible.length ? <ul className="mt-4 divide-y divide-[var(--border)]">
-      {visible.map(video => <li key={video.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
-        <div><h3 className="font-medium">{video.title}</h3>
-          <p className="mt-1 text-sm text-[var(--muted)]">{dateTime(video.scheduledAt)} · Hora de Lisboa</p></div>
-        <a href={`https://www.youtube.com/watch?v=${video.id}`} target="_blank" rel="noopener noreferrer"
-          className="text-sm font-semibold text-[var(--club-green-700)] hover:underline">Ver agendamento</a>
+      {visible.map(video => <li key={video.id} className="py-4">
+        <h3 className="font-medium">{video.title}</h3>
+        <p className="mt-1 text-sm text-[var(--muted)]">{dateTime(video.scheduledAt)} · Hora de Lisboa</p>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-sm font-semibold text-[var(--club-green-700)]">Ver nesta página</summary>
+          <div className="mt-3 aspect-video max-w-3xl bg-black">
+            <iframe src={`https://www.youtube-nocookie.com/embed/${video.id}`}
+              title={video.title} loading="lazy" allow="encrypted-media; picture-in-picture; web-share"
+              allowFullScreen referrerPolicy="strict-origin-when-cross-origin" className="h-full w-full" />
+          </div>
+        </details>
       </li>)}
     </ul> : <p className="mt-4 text-sm text-[var(--muted)]">Sem transmissões agendadas para este período.</p>}
   </section>;

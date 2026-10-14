@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/access";
 import { getDatabase } from "@/lib/db";
 import { PageHeading } from "@/components/ui/page-heading";
 import { TeamsView, type Season, type Team, type PlayerOption, type Membership, type PhaseOrder } from "./teams-view";
-import { createTeam, renameTeam, deleteTeam, addMembership, endMembership, savePhaseOrder } from "./actions";
+import { createTeam, renameTeam, deleteTeam, addMembership, endMembership, savePhaseOrder, confirmPortalTeamMapping, removePortalTeamMapping } from "./actions";
 
 export const metadata: Metadata = { title: "Equipas" };
 const notices: Record<string, string> = {
@@ -18,6 +18,11 @@ const notices: Record<string, string> = {
   related: "Não é possível eliminar uma equipa com histórico de jogadores.",
   "invalid-player": "Seleciona um jogador ativo e uma equipa válida.",
   "already-assigned": "O jogador já pertence a uma equipa nesta época. Remove-o primeiro da equipa atual.",
+  "portal-linked": "Associação ao Portal Bilhar confirmada.",
+  "portal-unlinked": "Associação ao Portal Bilhar removida.",
+  "portal-invalid": "O código da equipa no Portal Bilhar é inválido.",
+  "portal-unavailable": "Não foi possível validar agora a equipa no Portal Bilhar.",
+  "portal-missing": "A associação ao Portal Bilhar já não existe.",
 };
 export default async function TeamsPage({ searchParams }: {
   searchParams: Promise<{ season?: string; team?: string; status?: string }>;
@@ -29,8 +34,20 @@ export default async function TeamsPage({ searchParams }: {
   const selectedSeason = seasons.find((s) => s.id === query.season)
     ?? seasons.find((s) => s.is_active) ?? seasons[0];
   const seasonId = selectedSeason?.id ?? null;
-  const teams = seasonId ? (await sql`SELECT id, name, division FROM public.teams
-    WHERE season_id = ${seasonId}::uuid ORDER BY name`) as Team[] : [];
+  const teams = seasonId ? (await sql`SELECT t.id, t.name, t.division,
+    CASE WHEN pm.id IS NULL THEN NULL ELSE json_build_object(
+      'id', pm.id,
+      'portal_team_code', pm.portal_team_code,
+      'portal_team_name', pm.portal_team_name,
+      'portal_team_url', pm.portal_team_url,
+      'verification_status', pm.verification_status,
+      'verification_error', pm.verification_error,
+      'confirmed_at', pm.confirmed_at,
+      'last_verified_at', pm.last_verified_at
+    ) END AS portal_mapping
+    FROM public.teams t
+    LEFT JOIN public.portal_team_mappings pm ON pm.team_id = t.id AND pm.is_active
+    WHERE t.season_id = ${seasonId}::uuid ORDER BY t.name`) as Team[] : [];
   const teamId = (teams.find((t) => t.id === query.team) ?? teams[0])?.id ?? null;
   const [memberships, orders, players] = await Promise.all([
     teamId ? sql`SELECT m.id, m.player_id, p.name AS player_name,
@@ -54,6 +71,7 @@ export default async function TeamsPage({ searchParams }: {
       memberships={memberships as Membership[]} orders={orders as PhaseOrder[]}
       players={players as PlayerOption[]} isAdmin={user.role === "admin"}
       createTeam={createTeam} renameTeam={renameTeam} deleteTeam={deleteTeam}
-      addMembership={addMembership} endMembership={endMembership} savePhaseOrder={savePhaseOrder} />
+      addMembership={addMembership} endMembership={endMembership} savePhaseOrder={savePhaseOrder}
+      confirmPortalTeamMapping={confirmPortalTeamMapping} removePortalTeamMapping={removePortalTeamMapping} />
   </>;
 }

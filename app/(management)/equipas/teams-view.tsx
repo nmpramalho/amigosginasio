@@ -1,9 +1,11 @@
 "use client";
 import { useRef, useState } from "react";
 import { GripVertical, Pencil, Plus, Trash2, X } from "lucide-react";
+import { PortalTeamMappingDialog } from "./portal-team-mapping-dialog";
+import { PortalTeamMappingStatus, type PortalMapping } from "./portal-team-mapping-status";
 
 export type Season = { id: string; name: string; is_active: boolean };
-export type Team = { id: string; name: string; division: number | null };
+export type Team = { id: string; name: string; division: number | null; portal_mapping: PortalMapping | null };
 export type PlayerOption = { id: string; name: string };
 export type Membership = { id: string; player_id: string; player_name: string; historical: boolean };
 export type Phase = "first_leg" | "second_leg" | "qualification";
@@ -14,6 +16,7 @@ type Props = {
   selectedTeamId: string | null; memberships: Membership[]; orders: PhaseOrder[];
   players: PlayerOption[]; isAdmin: boolean; createTeam: Action; renameTeam: Action;
   deleteTeam: Action; addMembership: Action; endMembership: Action; savePhaseOrder: Action;
+  confirmPortalTeamMapping: Action; removePortalTeamMapping: Action;
 };
 const phases: { key: Phase; label: string }[] = [
   { key: "first_leg", label: "1.ª volta" },
@@ -37,7 +40,7 @@ function reorder(ids: string[], source: string, target: string): string[] {
 }
 export function TeamsView({ seasons, selectedSeasonId, teams, selectedTeamId, memberships, orders,
   players, isAdmin, createTeam, renameTeam, deleteTeam, addMembership, endMembership,
-  savePhaseOrder }: Props) {
+  savePhaseOrder, confirmPortalTeamMapping, removePortalTeamMapping }: Props) {
   const [lists, setLists] = useState(() => initialOrders(memberships, orders));
   const [editing, setEditing] = useState<Team | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -93,6 +96,14 @@ export function TeamsView({ seasons, selectedSeasonId, teams, selectedTeamId, me
           {isAdmin && <div className="flex gap-2">
             <button type="button" onClick={() => openEditor(team)} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"><Pencil size={15} /> Editar</button>
             <button type="button" onClick={openDelete} className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-2 text-sm text-red-700"><Trash2 size={15} /> Eliminar</button>
+          </div>}
+        </div>
+        <div className="mt-4 rounded-lg border border-[var(--border)] bg-slate-50 p-4">
+          <PortalTeamMappingStatus mapping={team.portal_mapping} />
+          {isAdmin && <div className="mt-3">
+            <PortalTeamMappingDialog seasonId={selectedSeasonId} teamId={team.id} teamName={team.name}
+              mapping={team.portal_mapping} confirmMapping={confirmPortalTeamMapping}
+              removeMapping={removePortalTeamMapping} />
           </div>}
         </div>
         {isAdmin && <form action={addMembership} className="mt-5 flex flex-wrap items-end gap-2">

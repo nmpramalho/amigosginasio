@@ -151,3 +151,59 @@ export async function savePhaseOrder(form: FormData): Promise<void> {
   const params = new URLSearchParams({ season, team, status: "order-saved" });
   redirect(`/equipas?${params.toString()}`);
 }
+
+export async function confirmPortalTeamMapping(form: FormData): Promise<void> {
+  const actor = await requireAdmin();
+  const season = form.get("seasonId");
+  const team = form.get("teamId");
+  const rawCode = form.get("portalTeamCode");
+  if (!validId(season) || !validId(team) || typeof rawCode !== "string") redirect(path);
+  const portalTeamCode = rawCode.trim().toUpperCase();
+  if (!/^EQP\d+$/.test(portalTeamCode)) go(season, "portal-invalid", team);
+
+  let details;
+  try {
+    const { getPortalTeamDetails } = await import("@/lib/portal-bilhar/teams");
+    details = await getPortalTeamDetails(portalTeamCode);
+  } catch {
+    go(season, "portal-unavailable", team);
+  }
+
+  const sql = getDatabase();
+  const rows = await sql`
+    WITH target AS (
+      SELECT id, season_id FROM public.teams
+      WHERE id = ${team}::uuid AND season_id = ${season}::uuid
+    ), disabled AS (
+      UPDATE public.portal_team_mappings
+      SET is_active = false, disconnected_at = now(), disconnected_by = ${actor.id}::uuid
+      WHERE team_id = ${team}::uuid AND is_active
+      RETURNING id
+    )
+    INSERT INTO public.portal_team_mappings (
+      season_id, team_id, portal_team_code, portal_team_name, portal_team_url,
+      verification_status, confirmed_by, last_verified_at
+    )
+    SELECT target.season_id, target.id, ${details.code}, ${details.name}, ${details.url},
+      'verified', ${actor.id}::uuid, now()
+    FROM target
+    RETURNING id`;
+  if (!rows.length) go(season, "missing", team);
+  refresh();
+  go(season, "portal-linked", team);
+}
+
+export async function removePortalTeamMapping(form: FormData): Promise<void> {
+  const actor = await requireAdmin();
+  const season = form.get("seasonId");
+  const team = form.get("teamId");
+  if (!validId(season) || !validId(team)) redirect(path);
+  const sql = getDatabase();
+  const rows = await sql`UPDATE public.portal_team_mappings
+    SET is_active = false, disconnected_at = now(), disconnected_by = ${actor.id}::uuid
+    WHERE team_id = ${team}::uuid AND season_id = ${season}::uuid AND is_active
+    RETURNING id`;
+  if (!rows.length) go(season, "portal-missing", team);
+  refresh();
+  go(season, "portal-unlinked", team);
+}
